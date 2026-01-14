@@ -14,6 +14,8 @@ import socket
 import ssl
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
+from PIL import Image
+from io import BytesIO
 
 
 
@@ -79,8 +81,29 @@ class HyLauncherApp(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_rowconfigure(10, weight=1) # Adjusted for new button
 
-        self.brand_label = ctk.CTkLabel(self.sidebar, text="HYLAUNCHER", font=ctk.CTkFont(size=28, weight="bold", family="Impact"))
-        self.brand_label.grid(row=0, column=0, padx=20, pady=(40, 30))
+        # Load Sprigatito GIF from PokéAPI
+        self.sprigatito_photo = None
+        try:
+            # Try to load the official artwork image (PNG, more reliable)
+            url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/906.png"
+            print(f"Attempting to load Sprigatito from: {url}")
+            with urllib.request.urlopen(url, timeout=10) as response:
+                img_data = response.read()
+            img = Image.open(BytesIO(img_data)).convert("RGBA")
+            # Resize to fit nicely in sidebar
+            img.thumbnail((140, 140), Image.Resampling.LANCZOS)
+            self.sprigatito_photo = ctk.CTkImage(light_image=img, dark_image=img, size=(140, 140))
+            
+            self.brand_label = ctk.CTkLabel(self.sidebar, image=self.sprigatito_photo, text="", fg_color="transparent")
+            self.brand_label.grid(row=0, column=0, padx=20, pady=(40, 30))
+            print("Sprigatito loaded successfully!")
+        except Exception as e:
+            # Fallback if image fails to load
+            print(f"Failed to load Sprigatito: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            self.brand_label = ctk.CTkLabel(self.sidebar, text="HYLAUNCHER", font=ctk.CTkFont(size=28, weight="bold", family="Impact"))
+            self.brand_label.grid(row=0, column=0, padx=20, pady=(40, 30))
 
         # Profile Quick-View
         self.profile_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
